@@ -1,26 +1,26 @@
 // app/components/NumberPad.tsx
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, DimensionValue } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
 interface NumberPadProps {
   onNumberPress: (num: number) => void;
   disabled: boolean;
-  // Optional: Allow customizing button size and spacing
   buttonSize?: number;
   buttonSpacing?: number;
 }
 
-// Define constants for easier maintenance and clarity
-const DEFAULT_BUTTON_SIZE = 75; // Slightly smaller for better fit
-const DEFAULT_BUTTON_SPACING = 10;
+const DEFAULT_BUTTON_SIZE = 75;
+const DEFAULT_BUTTON_SPACING = 5;
 
-// The layout remains the same logically
-const keypadLayout = [
-  [1, 2, 3],
-  [4, 5, 6],
-  [7, 8, 9],
-  [null, 0, null], // 0 centered at bottom
-];
+// Helper function to shuffle an array (Fisher-Yates algorithm)
+const shuffleArray = (array: number[]) => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
 
 export default function NumberPad({
   onNumberPress,
@@ -28,26 +28,41 @@ export default function NumberPad({
   buttonSize = DEFAULT_BUTTON_SIZE,
   buttonSpacing = DEFAULT_BUTTON_SPACING,
 }: NumberPadProps) {
+  const [randomizedLayout, setRandomizedLayout] = useState<Array<Array<number | null>>>([]);
 
-  // Calculate dynamic styles based on props
+  useEffect(() => {
+    // Generate all numbers (0-9) and shuffle them
+    const allNumbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+    
+    // Create the randomized layout while maintaining the original structure
+    const newLayout = [
+      [allNumbers[0], allNumbers[1], allNumbers[2]],
+      [allNumbers[3], allNumbers[4], allNumbers[5]],
+      [allNumbers[6], allNumbers[7], allNumbers[8]],
+      [null, allNumbers[9], null], // Keep 0 centered at bottom
+    ];
+    
+    setRandomizedLayout(newLayout);
+  }, []);
+
   const buttonStyle = {
     width: buttonSize,
     height: buttonSize,
-    borderRadius: buttonSize / 2, // Make it round
+    borderRadius: buttonSize / 2,
     marginHorizontal: buttonSpacing / 2,
     backgroundColor: '#3498db',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5, // Android shadow
-    shadowColor: '#000', // iOS shadow
+    elevation: 5,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   };
 
   const disabledButtonStyle = {
-    backgroundColor: '#a5c9e3', // Lighter color when disabled
-    elevation: 0, // No shadow when disabled
+    backgroundColor: '#a5c9e3',
+    elevation: 0,
     shadowOpacity: 0,
   };
 
@@ -63,27 +78,27 @@ export default function NumberPad({
 
   return (
     <View style={styles.container}>
-      {keypadLayout.map((row, rowIndex) => (
+      {randomizedLayout.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={[styles.row, rowStyle]}>
           {row.map((num, colIndex) =>
             num !== null ? (
               <TouchableOpacity
-                key={num}
+                key={`${num}-${rowIndex}-${colIndex}`}
                 style={[
-                  styles.baseButton, // Common base styles
-                  buttonStyle,      // Dynamic size/shape/color styles
-                  disabled && disabledButtonStyle, // Apply disabled style conditionally
+                  styles.baseButton,
+                  buttonStyle,
+                  disabled && disabledButtonStyle,
                 ]}
                 onPress={() => onNumberPress(num)}
                 disabled={disabled}
-                activeOpacity={disabled ? 1 : 0.7} // Prevent opacity change when disabled
+                activeOpacity={disabled ? 1 : 0.7}
               >
                 <Text style={styles.buttonText}>{num}</Text>
               </TouchableOpacity>
             ) : (
               <View
                 key={`empty-${rowIndex}-${colIndex}`}
-                style={emptyButtonStyle} // Spacer view
+                style={emptyButtonStyle}
               />
             )
           )}
@@ -93,28 +108,22 @@ export default function NumberPad({
   );
 }
 
-// Keep StyleSheet for static styles that don't depend on props
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingHorizontal: 20, // Adjust as needed based on button size/spacing
+    paddingHorizontal: 20,
     paddingBottom: 20,
-    alignItems: 'center', // Center the rows horizontally
+    alignItems: 'center',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
-    width: '100%', // Ensure row takes full width for centering its content
+    width: '100%',
   },
-  baseButton: {
-    // Base styles common to all buttons (e.g., alignment)
-    // Moved dynamic size/color to inline styles for customization
-  },
+  baseButton: {},
   buttonText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
   },
-  // No need for specific button/emptyButton styles here anymore
-  // as they are calculated dynamically based on props
 });
