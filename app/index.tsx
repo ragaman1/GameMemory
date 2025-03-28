@@ -1,5 +1,5 @@
 // app/index.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
@@ -12,128 +12,134 @@ export default function MemoryGame() {
   const [playerInput, setPlayerInput] = useState<number[]>([]);
   const [score, setScore] = useState(0);
 
-  // Clear the sequence when game is idle to avoid confusion
+  // Ref to handle timeouts so they can be cleared when needed.
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear sequence and input when game state is idle
   useEffect(() => {
     if (gameState === 'idle') {
       setSequence([]);
       setPlayerInput([]);
     }
   }, [gameState]);
-  
-  const startGame = () => {
-    setLevel(1);
-    setScore(0);
-    startLevel();
-  };
-  
-  const startLevel = () => {
-    const newSequence = generateSequence(level + 2); // Level 1 starts with 3 numbers
+
+  // startLevel now accepts the current level explicitly.
+  const startLevel = (currentLevel: number) => {
+    // Generate a sequence with length based on the current level.
+    const newSequence = generateSequence(currentLevel + 2);
     setSequence(newSequence);
     setPlayerInput([]);
     setGameState('displaying');
-    
-    // After display is complete, allow player to recall
-    setTimeout(() => {
+
+    // Clear any previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Set a new timeout that switches the game state to 'recall'
+    timeoutRef.current = setTimeout(() => {
       setGameState('recall');
-    }, (level + 2) * 1000); // Display time scales with sequence length
+    }, (currentLevel + 2) * 1000);
   };
-  
+
+  // Restart the game at level 1.
+  const startGame = () => {
+    // Clear any pending timeouts to avoid interference from a previous round.
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    setLevel(1);
+    setScore(0);
+    startLevel(1);
+  };
+
   const handleNumberPress = (num: number) => {
     if (gameState !== 'recall') return;
-    
+
     const newInput = [...playerInput, num];
     setPlayerInput(newInput);
-    
-    // Check if player has entered the full sequence
+
+    // If the player has input the full sequence, check the answer.
     if (newInput.length === sequence.length) {
       checkAnswer(newInput);
     }
   };
-  
+
   const checkAnswer = (input: number[]) => {
     const correct = input.every((num, index) => num === sequence[index]);
-    
+
     if (correct) {
       setScore(score + level * 10);
       setGameState('success');
-      setTimeout(() => {
-        setLevel(prevLevel => prevLevel + 1);
-        startLevel();
+
+      // Clear any pending timeout for safety.
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // After a brief delay, proceed to the next level.
+      timeoutRef.current = setTimeout(() => {
+        const newLevel = level + 1;
+        setLevel(newLevel);
+        startLevel(newLevel);
       }, 1500);
     } else {
+      // On failure, clear any pending timeout and set game state to failure.
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setGameState('failure');
     }
   };
 
+  // Render controls only when the game is idle or after failure.
   const renderGameControls = () => {
-    if (gameState === 'idle') {
+    if (gameState === 'idle' || gameState === 'failure') {
       return (
-        <TouchableOpacity 
-          style={styles.startButton} 
-          onPress={startGame}
-        >
-          <Text style={styles.buttonText}>Start Game</Text>
-        </TouchableOpacity>
-      );
-    } else if (gameState === 'failure') {
-      return (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.gameButton} 
-            onPress={startGame}
-          >
-            <Text style={styles.buttonText}>Play Again</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    } else {
-      return (
-        <TouchableOpacity 
-          style={styles.resetButton} 
-          onPress={() => setGameState('idle')}
-        >
-          <Text style={styles.resetText}>Reset</Text>
+        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+          <Text style={styles.buttonText}>
+            {gameState === 'failure' ? 'Play Again' : 'Start Game'}
+          </Text>
         </TouchableOpacity>
       );
     }
+    // During active gameplay we do not render any extra controls.
+    return null;
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with game info */}
+      {/* Header with level and score info */}
       <View style={styles.header}>
         <Text style={styles.infoText}>Level: {level}</Text>
         <Text style={styles.infoText}>Score: {score}</Text>
-        
-        {/* Small reset button only visible during active gameplay */}
-        {(gameState === 'displaying' || gameState === 'recall' || gameState === 'success') && (
-          <TouchableOpacity 
-            style={styles.resetButton} 
-            onPress={() => setGameState('idle')}
-          >
-            <Text style={styles.resetText}>Reset</Text>
-          </TouchableOpacity>
-        )}
       </View>
-      
+
       {/* Game status banner */}
-      <View style={[
-        styles.statusBanner, 
-        gameState === 'success' ? styles.successBanner : 
-        gameState === 'failure' ? styles.failureBanner : 
-        gameState === 'displaying' ? styles.displayingBanner : 
-        gameState === 'recall' ? styles.recallBanner : 
-        styles.idleBanner
-      ]}>
+      <View
+        style={[
+          styles.statusBanner,
+          gameState === 'success'
+            ? styles.successBanner
+            : gameState === 'failure'
+            ? styles.failureBanner
+            : gameState === 'displaying'
+            ? styles.displayingBanner
+            : gameState === 'recall'
+            ? styles.recallBanner
+            : styles.idleBanner,
+        ]}
+      >
         <Text style={styles.statusText}>
-          {gameState === 'idle' && "Ready to start!"}
-          {gameState === 'displaying' && "Memorize the sequence..."}
-          {gameState === 'recall' && "Recall the sequence!"}
-          {gameState === 'success' && "Correct! Well done!"}
-          {gameState === 'failure' && "Incorrect! Game Over!"}
+          {gameState === 'idle' && 'Ready to start!'}
+          {gameState === 'displaying' && 'Memorize the sequence...'}
+          {gameState === 'recall' && 'Recall the sequence!'}
+          {gameState === 'success' && 'Correct! Well done!'}
+          {gameState === 'failure' && 'Incorrect! Game Over!'}
         </Text>
       </View>
-      
+
       {/* Sequence Display */}
       <View style={styles.gameArea}>
         <SequenceDisplay 
@@ -142,17 +148,17 @@ export default function MemoryGame() {
           level={level}
         />
       </View>
-      
+
       {/* Input indicators */}
       {gameState !== 'idle' && (
         <View style={styles.inputDisplay}>
           <View style={styles.inputRow}>
             {sequence.map((_, index) => (
-              <View 
-                key={index} 
+              <View
+                key={index}
                 style={[
-                  styles.inputDot, 
-                  index < playerInput.length ? styles.inputDotFilled : null
+                  styles.inputDot,
+                  index < playerInput.length ? styles.inputDotFilled : null,
                 ]}
               >
                 {index < playerInput.length && (
@@ -163,12 +169,10 @@ export default function MemoryGame() {
           </View>
         </View>
       )}
-      
-      {/* Conditionally render either the Start/Play Again button or the Number Pad */}
+
+      {/* Render the game controls or the number pad based on game state */}
       {gameState === 'idle' || gameState === 'failure' ? (
-        <View style={styles.controlArea}>
-          {renderGameControls()}
-        </View>
+        <View style={styles.controlArea}>{renderGameControls()}</View>
       ) : (
         <View style={styles.numberPadContainer}>
           <NumberPad 
@@ -200,16 +204,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  resetButton: {
-    backgroundColor: '#e74c3c',
-    padding: 8,
-    borderRadius: 5,
-  },
-  resetText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   statusBanner: {
     width: '100%',
@@ -289,27 +283,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  gameButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    minWidth: 200,
-    alignItems: 'center',
-    marginVertical: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
   buttonText: {
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  buttonContainer: {
-    alignItems: 'center',
   },
   numberPadContainer: {
     flex: 3,
