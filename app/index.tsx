@@ -11,6 +11,7 @@ export default function MemoryGame() {
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerInput, setPlayerInput] = useState<number[]>([]);
   const [score, setScore] = useState(0);
+  const [gameMode, setGameMode] = useState<'sequence' | 'wholeNumber'>('sequence'); // ADDED
 
   // Ref to handle timeouts so they can be cleared when needed.
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,19 +28,29 @@ export default function MemoryGame() {
   const startLevel = (currentLevel: number) => {
     // Generate a sequence with length based on the current level.
     const newSequence = generateSequence(currentLevel + 2);
-    setSequence(newSequence);
+    let displayValue: number[] | number;
+
+    if (gameMode === 'wholeNumber') {
+      const numberString = newSequence.join('');
+      displayValue = parseInt(numberString, 10); //convert to a single number
+      setSequence([displayValue]); // Adjust the sequence to hold the single number
+    } else {
+      displayValue = newSequence; // use the array
+      setSequence(newSequence);
+    }
     setPlayerInput([]);
     setGameState('displaying');
 
-    // Clear any previous timeout
+    // Adjust the timeout based on the game mode
+    const displayTime = gameMode === 'wholeNumber' ? 2000 : (currentLevel + 2) * 1000;
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    // Set a new timeout that switches the game state to 'recall'
     timeoutRef.current = setTimeout(() => {
       setGameState('recall');
-    }, (currentLevel + 2) * 1000);
+    }, displayTime);
   };
 
   // Restart the game at level 1.
@@ -61,13 +72,26 @@ export default function MemoryGame() {
     setPlayerInput(newInput);
 
     // If the player has input the full sequence, check the answer.
-    if (newInput.length === sequence.length) {
+    if (gameMode === 'wholeNumber') {
+        if (newInput.length === sequence[0].toString().length) {
+            checkAnswer(newInput);
+        }
+    }
+    else if (newInput.length === sequence.length) {
       checkAnswer(newInput);
     }
   };
 
   const checkAnswer = (input: number[]) => {
-    const correct = input.every((num, index) => num === sequence[index]);
+    let correct: boolean = false;
+
+    if (gameMode === 'wholeNumber') {
+      //Convert user input to a single number for comparison
+      const playerNumber = parseInt(input.join(''), 10);
+      correct = playerNumber === sequence[0];
+    } else {
+      correct = input.every((num, index) => num === sequence[index]);
+    }
 
     if (correct) {
       setScore(score + level * 10);
@@ -140,12 +164,41 @@ export default function MemoryGame() {
         </Text>
       </View>
 
+      {/* Add this to your existing MemoryGame component, preferably near the header */}
+      <View style={styles.modeSwitcher}>
+        <TouchableOpacity 
+          style={[
+            styles.modeButton, 
+            gameMode === 'sequence' && styles.activeMode
+          ]}
+          onPress={() => {
+            if (gameMode !== 'sequence') {
+              setGameMode('sequence');
+              setGameState('idle');
+            }
+          }}
+        >
+          <Text style={styles.modeButtonText}>Sequence Mode</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[
+            styles.modeButton, 
+            gameMode === 'wholeNumber' && styles.activeMode
+          ]}
+          onPress={() => setGameMode('wholeNumber')}
+        >
+          <Text style={styles.modeButtonText}>Whole Number Mode</Text>
+        </TouchableOpacity>
+      </View>
+
+
       {/* Sequence Display */}
       <View style={styles.gameArea}>
-        <SequenceDisplay 
+        <SequenceDisplay
           sequence={sequence}
           isDisplaying={gameState === 'displaying'}
           level={level}
+          gameMode={gameMode} // ADDED
         />
       </View>
 
@@ -175,7 +228,7 @@ export default function MemoryGame() {
         <View style={styles.controlArea}>{renderGameControls()}</View>
       ) : (
         <View style={styles.numberPadContainer}>
-          <NumberPad 
+          <NumberPad
             onNumberPress={handleNumberPress}
             disabled={gameState !== 'recall'}
           />
@@ -214,6 +267,28 @@ const styles = StyleSheet.create({
   idleBanner: {
     backgroundColor: '#95a5a6',
   },
+
+  modeSwitcher: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  modeButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginHorizontal: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#3498db',
+    backgroundColor: '#f5f5f5',
+  },
+  activeMode: {
+    backgroundColor: '#3498db',
+  },
+  activeModeText: {
+    color: 'white',
+  },
+
   displayingBanner: {
     backgroundColor: '#3498db',
   },
@@ -283,7 +358,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  buttonText: {
+
+modeButtonText: {
+  color: '#3498db',
+  fontWeight: 'bold',
+},
+buttonText: {
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold',

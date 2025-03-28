@@ -6,18 +6,41 @@ interface SequenceDisplayProps {
   sequence: number[];
   isDisplaying: boolean;
   level: number;
+  gameMode: 'sequence' | 'wholeNumber';
 }
 
-export default function SequenceDisplay({ sequence, isDisplaying, level }: SequenceDisplayProps) {
+export default function SequenceDisplay({ 
+  sequence, 
+  isDisplaying, 
+  level,
+  gameMode 
+}: SequenceDisplayProps) {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const fadeAnim = useState(new Animated.Value(0))[0];
   
   useEffect(() => {
     if (isDisplaying && sequence.length > 0) {
       setCurrentIndex(-1);
-      displaySequence();
+      if (gameMode === 'wholeNumber') {
+        // For wholeNumber mode, we don't need the sequence animation
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 200,
+            delay: 2000, // Display the whole number for 2 seconds
+            useNativeDriver: true,
+          }),
+        ]).start();
+      } else {
+        displaySequence();
+      }
     }
-  }, [isDisplaying, sequence]);
+  }, [isDisplaying, sequence, gameMode]);
   
   const displaySequence = () => {
     sequence.forEach((_, index) => {
@@ -46,9 +69,11 @@ export default function SequenceDisplay({ sequence, isDisplaying, level }: Seque
       {isDisplaying ? (
         <Animated.View style={[styles.numberDisplay, { opacity: fadeAnim }]}>
           <Text style={styles.number}>
-            {currentIndex >= 0 && currentIndex < sequence.length 
-              ? String(sequence[currentIndex]) 
-              : ""}
+            {gameMode === 'wholeNumber'
+              ? String(sequence[0]) // Display the entire number
+              : (currentIndex >= 0 && currentIndex < sequence.length
+                ? String(sequence[currentIndex])
+                : "")}
           </Text>
         </Animated.View>
       ) : (
