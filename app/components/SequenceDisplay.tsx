@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import ProgressBar from './ProgressBar';
 import type { DisplayMode } from '../types/game';
 
 interface SequenceDisplayProps {
@@ -17,14 +18,30 @@ export default function SequenceDisplay({
 }: SequenceDisplayProps) {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const progressAnim = useState(new Animated.Value(0))[0];
+  
+  // Reset animations when display starts
+  useEffect(() => {
+    if (isDisplaying) {
+      progressAnim.setValue(0);
+    }
+  }, [isDisplaying, progressAnim]);
   
   // Sequential display logic
   const displaySequentially = useCallback(() => {
     const timeouts: NodeJS.Timeout[] = [];
+    const totalItems = sequence.length;
     
     sequence.forEach((_, index) => {
       const timeout = setTimeout(() => {
         setCurrentIndex(index);
+        
+        // Update progress (increment by 1/totalItems for each number)
+        Animated.timing(progressAnim, {
+          toValue: (index + 1) / totalItems,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
         
         Animated.sequence([
           Animated.timing(fadeAnim, {
@@ -47,19 +64,26 @@ export default function SequenceDisplay({
     return () => {
       timeouts.forEach(clearTimeout);
     };
-  }, [sequence, level, fadeAnim]);
+  }, [sequence, level, fadeAnim, progressAnim]);
   
   // Simultaneous display logic
   const displaySimultaneously = useCallback(() => {
-    // Show all numbers at once and keep them visible
+    // Show all numbers at once
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
     
-    // Clear after a duration based on level and sequence length
+    // Calculate display time based on level and sequence length
     const displayTime = Math.max(2000, (level * 300) + (sequence.length * 200));
+    
+    // Animate progress from 0 to 1 over the full display time
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: displayTime,
+      useNativeDriver: false,
+    }).start();
     
     const timeout = setTimeout(() => {
       Animated.timing(fadeAnim, {
@@ -70,7 +94,7 @@ export default function SequenceDisplay({
     }, displayTime);
     
     return () => clearTimeout(timeout);
-  }, [sequence, level, fadeAnim]);
+  }, [sequence, level, fadeAnim, progressAnim]);
   
   useEffect(() => {
     if (isDisplaying && sequence.length > 0) {
@@ -89,6 +113,15 @@ export default function SequenceDisplay({
   
   return (
     <View style={styles.container}>
+      {/* Progress bar */}
+      {isDisplaying && (
+        <ProgressBar 
+          progress={progressAnim} 
+          color="#2ecc71"
+          height={8}
+        />
+      )}
+      
       {isDisplaying ? (
         displayMode === 'sequential' ? (
           // Sequential display - show one number at a time
@@ -115,6 +148,8 @@ export default function SequenceDisplay({
     </View>
   );
 }
+
+// Styles 
 
 const styles = StyleSheet.create({
   container: {
