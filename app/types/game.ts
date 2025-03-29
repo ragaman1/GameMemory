@@ -33,6 +33,7 @@ export type GameLogicReturn = {
   score: number;
   startGame: () => void;
   handleNumberPress: (num: number) => void;
+  handleDeletePress: () => void;
 };
 
 // Optional: Configuration types

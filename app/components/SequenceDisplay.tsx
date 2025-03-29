@@ -1,5 +1,4 @@
-// app/components/SequenceDisplay.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 
 interface SequenceDisplayProps {
@@ -12,16 +11,13 @@ export default function SequenceDisplay({ sequence, isDisplaying, level }: Seque
   const [currentIndex, setCurrentIndex] = useState(-1);
   const fadeAnim = useState(new Animated.Value(0))[0];
   
-  useEffect(() => {
-    if (isDisplaying && sequence.length > 0) {
-      setCurrentIndex(-1);
-      displaySequence();
-    }
-  }, [isDisplaying, sequence]);
-  
-  const displaySequence = () => {
+  // Use useCallback to properly handle dependencies
+  const displaySequence = useCallback(() => {
+    // Clear any existing timeouts
+    const timeouts: NodeJS.Timeout[] = [];
+    
     sequence.forEach((_, index) => {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         setCurrentIndex(index);
         
         Animated.sequence([
@@ -38,8 +34,24 @@ export default function SequenceDisplay({ sequence, isDisplaying, level }: Seque
           }),
         ]).start();
       }, index * 1000);
+      
+      timeouts.push(timeout);
     });
-  };
+    
+    // Cleanup function to clear timeouts if component unmounts or effect reruns
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, [sequence, level, fadeAnim]); // Include all dependencies!
+  
+  useEffect(() => {
+    if (isDisplaying && sequence.length > 0) {
+      setCurrentIndex(-1);
+      const cleanup = displaySequence();
+      
+      return cleanup; // This will clear timeouts if effect reruns
+    }
+  }, [isDisplaying, sequence, level, displaySequence]); // Include level and displaySequence
   
   return (
     <View style={styles.container}>

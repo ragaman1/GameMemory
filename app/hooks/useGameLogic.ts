@@ -3,8 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { generateSequence } from '../utils/gameLogic';
 import type {GameState, GameLogicReturn } from '../types/game';
 
-
-export default function useGameLogic(): GameLogicReturn {
+export function useGameLogic(): GameLogicReturn {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [level, setLevel] = useState(1);
   const [sequence, setSequence] = useState<number[]>([]);
@@ -50,6 +49,14 @@ export default function useGameLogic(): GameLogicReturn {
     }
   };
 
+  // Add the delete function
+  const handleDeletePress = () => {
+    if (gameState !== 'recall' || playerInput.length === 0) {
+      return;
+    }
+    setPlayerInput(prevInput => prevInput.slice(0, -1));
+  };
+
   const checkAnswer = (input: number[]) => {
     const isCorrect = input.every((num, index) => num === sequence[index]);
 
@@ -58,8 +65,9 @@ export default function useGameLogic(): GameLogicReturn {
       setGameState('success');
       
       timeoutRef.current = setTimeout(() => {
-        setLevel(prev => prev + 1);
-        startLevel(level + 1);
+        const nextLevel = level + 1;
+        setLevel(nextLevel);
+        startLevel(nextLevel); // Use the calculated value, not the state
       }, 1500);
     } else {
       setGameState('failure');
@@ -73,6 +81,7 @@ export default function useGameLogic(): GameLogicReturn {
     playerInput,
     score,
     startGame,
-    handleNumberPress
+    handleNumberPress,
+    handleDeletePress // Add this to return
   };
 }
