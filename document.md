@@ -12,6 +12,15 @@ Based on the repository files, I'll update the documentation to reflect the curr
 
 ```
 └── GameMemory/
+    ├── src/
+    │   ├── hooks/
+    │   │   └── useGameLogic.ts # Custom hook for game state management
+    │   ├── styles/
+    │   │   └── gameStyles.ts  # Style definitions
+    │   ├── types/
+    │   │   └── game.ts        # Type definitions
+    │   └── utils/
+    │       └── gameLogic.ts   # Game logic utilities
     ├── README.md              # Project overview and setup instructions
     ├── app.json               # Expo configuration file
     ├── package.json           # Project dependencies and scripts
@@ -23,15 +32,8 @@ Based on the repository files, I'll update the documentation to reflect the curr
     │   │   ├── SequenceDisplay.tsx  # Displays numbers to memorize
     │   │   ├── NumberPad.tsx        # Input pad for player responses
     │   │   ├── GameControls.tsx     # Start/restart game buttons
+    │   │   ├── ProgressBar.tsx      # progressbar
     │   │   └── StatusBanner.tsx     # Displays game status messages
-    │   ├── hooks/
-    │   │   └── useGameLogic.ts      # Custom hook for game state management
-    │   ├── utils/
-    │   │   └── gameLogic.ts         # Game logic utilities
-    │   ├── types/
-    │   │   └── game.ts              # Type definitions
-    │   └── styles/
-    │       └── gameStyles.ts        # Style definitions
     └── assets/                # Static assets
         ├── fonts/
         │   └── SpaceMono-Regular.ttf

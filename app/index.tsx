@@ -4,7 +4,7 @@ import { useGameLogic } from '../src/hooks/useGameLogic';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
 import StatusBanner from './components/StatusBanner';
-import { styles } from '../src/styles/gameStyles'; // Use named import
+import { styles } from '../src/styles/gameStyles'; 
 
 import type { GameLogicReturn } from '../src/types/game';
 

@@ -1,9 +1,9 @@
 // components/StatusBanner.tsx
 import { View, Text } from 'react-native';
-import { styles } from '../styles/gameStyles';
+import { styles } from '../../src/styles/gameStyles'; 
 
 type GameState = 'idle' | 'displaying' | 'recall' | 'success' | 'failure';
-import type { StatusBannerProps } from '../types/game';
+import type { StatusBannerProps } from '../../src/types/game';
 
 export default function StatusBanner({ state }: StatusBannerProps) {
     // Define the status messages for each game state
