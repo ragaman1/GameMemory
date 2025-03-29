@@ -1,97 +1,24 @@
 // app/index.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import useGameLogic from './hooks/useGameLogic';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
-import { generateSequence } from './utils/gameLogic';
+import StatusBanner from './components/StatusBanner';
+import styles from './styles/gameStyles';
+import type { GameLogicReturn } from './types/game';
 
 export default function MemoryGame() {
-  const [gameState, setGameState] = useState('idle'); // idle, displaying, recall, success, failure
-  const [level, setLevel] = useState(1);
-  const [sequence, setSequence] = useState<number[]>([]);
-  const [playerInput, setPlayerInput] = useState<number[]>([]);
-  const [score, setScore] = useState(0);
+  // Single hook call with proper typing
+  const {
+    gameState,
+    level,
+    sequence,
+    playerInput,
+    score,
+    startGame,
+    handleNumberPress
+  }: GameLogicReturn = useGameLogic();
 
-  // Ref to handle timeouts so they can be cleared when needed.
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Clear sequence and input when game state is idle
-  useEffect(() => {
-    if (gameState === 'idle') {
-      setSequence([]);
-      setPlayerInput([]);
-    }
-  }, [gameState]);
-
-  // startLevel now accepts the current level explicitly.
-  const startLevel = (currentLevel: number) => {
-    // Generate a sequence with length based on the current level.
-    const newSequence = generateSequence(currentLevel + 2);
-    setSequence(newSequence);
-    setPlayerInput([]);
-    setGameState('displaying');
-
-    // Clear any previous timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Set a new timeout that switches the game state to 'recall'
-    timeoutRef.current = setTimeout(() => {
-      setGameState('recall');
-    }, (currentLevel + 2) * 1000);
-  };
-
-  // Restart the game at level 1.
-  const startGame = () => {
-    // Clear any pending timeouts to avoid interference from a previous round.
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    setLevel(1);
-    setScore(0);
-    startLevel(1);
-  };
-
-  const handleNumberPress = (num: number) => {
-    if (gameState !== 'recall') return;
-
-    const newInput = [...playerInput, num];
-    setPlayerInput(newInput);
-
-    // If the player has input the full sequence, check the answer.
-    if (newInput.length === sequence.length) {
-      checkAnswer(newInput);
-    }
-  };
-
-  const checkAnswer = (input: number[]) => {
-    const correct = input.every((num, index) => num === sequence[index]);
-
-    if (correct) {
-      setScore(score + level * 10);
-      setGameState('success');
-
-      // Clear any pending timeout for safety.
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      // After a brief delay, proceed to the next level.
-      timeoutRef.current = setTimeout(() => {
-        const newLevel = level + 1;
-        setLevel(newLevel);
-        startLevel(newLevel);
-      }, 1500);
-    } else {
-      // On failure, clear any pending timeout and set game state to failure.
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      setGameState('failure');
-    }
-  };
 
   // Render controls only when the game is idle or after failure.
   const renderGameControls = () => {
@@ -115,30 +42,9 @@ export default function MemoryGame() {
         <Text style={styles.infoText}>Level: {level}</Text>
         <Text style={styles.infoText}>Score: {score}</Text>
       </View>
-
-      {/* Game status banner */}
-      <View
-        style={[
-          styles.statusBanner,
-          gameState === 'success'
-            ? styles.successBanner
-            : gameState === 'failure'
-            ? styles.failureBanner
-            : gameState === 'displaying'
-            ? styles.displayingBanner
-            : gameState === 'recall'
-            ? styles.recallBanner
-            : styles.idleBanner,
-        ]}
-      >
-        <Text style={styles.statusText}>
-          {gameState === 'idle' && 'Ready to start!'}
-          {gameState === 'displaying' && 'Memorize the sequence...'}
-          {gameState === 'recall' && 'Recall the sequence!'}
-          {gameState === 'success' && 'Correct! Well done!'}
-          {gameState === 'failure' && 'Incorrect! Game Over!'}
-        </Text>
-      </View>
+      {/* Status Banner */}
+      {/* The StatusBanner component will change its style and text based on the game state */}
+      <StatusBanner state={gameState} />
 
       {/* Sequence Display */}
       <View style={styles.gameArea}>
@@ -184,111 +90,3 @@ export default function MemoryGame() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  infoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  statusBanner: {
-    width: '100%',
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  idleBanner: {
-    backgroundColor: '#95a5a6',
-  },
-  displayingBanner: {
-    backgroundColor: '#3498db',
-  },
-  recallBanner: {
-    backgroundColor: '#2ecc71',
-  },
-  successBanner: {
-    backgroundColor: '#2ecc71',
-  },
-  failureBanner: {
-    backgroundColor: '#e74c3c',
-  },
-  statusText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  gameArea: {
-    flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  inputDisplay: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    maxWidth: '90%',
-  },
-  inputDot: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#3498db',
-    marginHorizontal: 5,
-    marginBottom: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  inputDotFilled: {
-    backgroundColor: '#3498db',
-  },
-  inputNumber: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  controlArea: {
-    flex: 3,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  startButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    minWidth: 200,
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  numberPadContainer: {
-    flex: 3,
-  },
-});
