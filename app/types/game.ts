@@ -24,8 +24,12 @@ export type InputIndicatorProps = {
   playerInput: number[];
 };
 
-// Game logic return type
-export type GameLogicReturn = {
+// Add a new type for display mode
+export type DisplayMode = 'sequential' | 'simultaneous';
+
+// Update GameLogicReturn to include the new mode and toggle function
+export interface GameLogicReturn {
+  // existing fields
   gameState: GameState;
   level: number;
   sequence: number[];
@@ -34,7 +38,10 @@ export type GameLogicReturn = {
   startGame: () => void;
   handleNumberPress: (num: number) => void;
   handleDeletePress: () => void;
-};
+  // new fields
+  displayMode: DisplayMode;
+  toggleDisplayMode: () => void;
+}
 
 // Optional: Configuration types
 export type GameConfig = {

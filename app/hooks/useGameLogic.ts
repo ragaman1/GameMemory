@@ -1,14 +1,17 @@
 // app/hooks/useGameLogic.ts
 import { useState, useRef, useEffect } from 'react';
 import { generateSequence } from '../utils/gameLogic';
-import type {GameState, GameLogicReturn } from '../types/game';
+import type {GameState, GameLogicReturn , DisplayMode} from '../types/game';
 
 export function useGameLogic(): GameLogicReturn {
+  // Existing state
   const [gameState, setGameState] = useState<GameState>('idle');
   const [level, setLevel] = useState(1);
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerInput, setPlayerInput] = useState<number[]>([]);
   const [score, setScore] = useState(0);
+  // New state for display mode
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('sequential');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup on unmount
@@ -26,9 +29,21 @@ export function useGameLogic(): GameLogicReturn {
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
+    // Adjust display time based on mode
+    const displayTime = displayMode === 'sequential' 
+      ? (currentLevel + 2) * 1000  // Original timing
+      : Math.max(3000, (currentLevel + 2) * 500); // Longer time for simultaneous display
+
     timeoutRef.current = setTimeout(() => {
       setGameState('recall');
-    }, (currentLevel + 2) * 1000);
+    }, displayTime);
+  };
+
+  // Add toggle function
+  const toggleDisplayMode = () => {
+    setDisplayMode(prevMode => 
+      prevMode === 'sequential' ? 'simultaneous' : 'sequential'
+    );
   };
 
   const startGame = () => {
@@ -82,6 +97,8 @@ export function useGameLogic(): GameLogicReturn {
     score,
     startGame,
     handleNumberPress,
-    handleDeletePress // Add this to return
+    handleDeletePress,
+    displayMode,
+    toggleDisplayMode
   };
 }

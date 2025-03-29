@@ -1,5 +1,5 @@
 // app/index.tsx
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native'; // Import StyleSheet
+import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native'; // Import StyleSheet
 import { useGameLogic } from './hooks/useGameLogic'; // Use named import if you changed the export
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
@@ -18,9 +18,10 @@ export default function MemoryGame() {
     score,
     startGame,
     handleNumberPress,
-    handleDeletePress, // Destructure the new handler
+    handleDeletePress,
+    displayMode,
+    toggleDisplayMode
   }: GameLogicReturn = useGameLogic();
-
 
   // Render controls only when the game is idle or after failure.
   const renderGameControls = () => {
@@ -38,10 +39,20 @@ export default function MemoryGame() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with level and score info */}
+      {/* Header with level and score info and mode toggle */}
       <View style={styles.header}>
         <Text style={styles.infoText}>Level: {level}</Text>
         <Text style={styles.infoText}>Score: {score}</Text>
+        <View style={styles.modeToggle}>
+          <Text style={styles.modeLabel}>
+            {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
+          </Text>
+          <Switch
+            value={displayMode === 'simultaneous'}
+            onValueChange={toggleDisplayMode}
+            disabled={gameState !== 'idle' && gameState !== 'failure'}
+          />
+        </View>
       </View>
 
       {/* Status Banner */}
@@ -53,9 +64,11 @@ export default function MemoryGame() {
           // Show sequence being displayed
           <SequenceDisplay
             sequence={sequence}
-            isDisplaying={true} // gameState === 'displaying' implies this
+            isDisplaying={true}
             level={level}
+            displayMode={displayMode}
           />
+
         ) : gameState === 'recall' || gameState === 'success' || gameState === 'failure' ? (
           // Show input feedback during recall, success (briefly), or failure
           <View style={styles.inputDisplay}>

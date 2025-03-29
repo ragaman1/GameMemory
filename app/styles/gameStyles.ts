@@ -136,4 +136,13 @@ export const styles = StyleSheet.create({
     height: 280,
     width: '100%', // Ensure it takes width if needed
   },
+  modeToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  modeLabel: {
+    marginRight: 8,
+    fontSize: 14,
+  }
 });
