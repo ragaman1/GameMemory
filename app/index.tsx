@@ -1,12 +1,12 @@
 // app/index.tsx
-import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native'; // Import StyleSheet
-import { useGameLogic } from './hooks/useGameLogic'; // Use named import if you changed the export
+import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native'; 
+import { useGameLogic } from '../src/hooks/useGameLogic'; 
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
 import StatusBanner from './components/StatusBanner';
-import { styles } from './styles/gameStyles'; // Use named import
+import { styles } from '../src/styles/gameStyles'; // Use named import
 
-import type { GameLogicReturn } from './types/game';
+import type { GameLogicReturn } from '../src/types/game';
 
 export default function MemoryGame() {
   // Single hook call with proper typing
