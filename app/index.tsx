@@ -14,6 +14,8 @@ import { getUserBestScore } from '../src/utils/scoreStorage';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
 import StatusBanner from './components/StatusBanner';
+import AuthHeader from './components/AuthHeader';
+import ScoreModal from './components/ScoreModal';
 import { styles } from '../src/styles/gameStyles'; 
 
 import type { GameLogicReturn } from '../src/types/game';
@@ -23,8 +25,10 @@ export default function MemoryGame() {
   const router = useRouter();
   const { session } = useAuth();
   const [bestScore, setBestScore] = useState<UserScore | null>(null);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [isHighScore, setIsHighScore] = useState(false);
   
-  // Single hook call with proper typing
+  // Game logic hook with proper typing
   const {
     gameState,
     level,
@@ -49,14 +53,24 @@ export default function MemoryGame() {
     }
   }, [session]);
 
-  // Navigate to auth screens
-  const navigateToAuth = () => {
-    router.push('/auth/login');
-  };
-
-  const navigateToProfile = () => {
-    router.push('/auth/profile');
-  };
+  // Show score modal when game ends
+  useEffect(() => {
+    if (gameState === 'failure' && score > 0) {
+      // Check if it's a high score
+      const newHighScore = !bestScore || score > bestScore.score;
+      setIsHighScore(newHighScore);
+      setShowScoreModal(true);
+      
+      // If it's a new high score, refresh the best score
+      if (newHighScore && session.isAuthenticated && session.user) {
+        setTimeout(() => {
+          session.user && getUserBestScore(session.user.id).then(score => {
+            if (score) setBestScore(score);
+          });
+        }, 1000); // Short delay to ensure score is saved
+      }
+    }
+  }, [gameState, score, bestScore, session]);
 
   // Render controls only when the game is idle or after failure.
   const renderGameControls = () => {
@@ -74,34 +88,8 @@ export default function MemoryGame() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Auth Status Bar */}
-      <View style={authStyles.authBar}>
-        {session.isAuthenticated && session.user ? (
-          <View style={authStyles.userInfo}>
-            <Text style={authStyles.username}>
-              {session.user.username}
-            </Text>
-            {bestScore && (
-              <Text style={authStyles.bestScore}>
-                Best: {bestScore.score} (Lv.{bestScore.level})
-              </Text>
-            )}
-            <TouchableOpacity 
-              style={authStyles.profileButton}
-              onPress={navigateToProfile}
-            >
-              <Text style={authStyles.profileButtonText}>Profile</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity 
-            style={authStyles.loginButton}
-            onPress={navigateToAuth}
-          >
-            <Text style={authStyles.loginText}>Login / Register</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      {/* Auth Header */}
+      <AuthHeader bestScore={bestScore} />
 
       {/* Header with level and score info and mode toggle */}
       <View style={styles.header}>
@@ -147,7 +135,6 @@ export default function MemoryGame() {
                   style={[
                     styles.inputDot,
                     index < playerInput.length ? styles.inputDotFilled : null,
-                    // Add conditional styling for correctness on failure?
                   ]}
                 >
                   {/* Show entered number inside the dot */}
@@ -166,7 +153,7 @@ export default function MemoryGame() {
         )}
       </View>
 
-      {/* Render the game controls OR the number pad based on game state */}
+      {/* Game controls */}
       <View style={styles.controlArea}>
         {gameState === 'idle' || gameState === 'failure' ? (
           renderGameControls()
@@ -174,14 +161,24 @@ export default function MemoryGame() {
           // Only show NumberPad during recall phase
           <NumberPad
             onNumberPress={handleNumberPress}
-            onDeletePress={handleDeletePress} // Pass the handler here
-            disabled={gameState !== 'recall'} // Already handled, but explicit is fine
+            onDeletePress={handleDeletePress}
+            disabled={gameState !== 'recall'}
           />
         ) : (
           // No controls shown during 'displaying' or 'success' states
-          <View style={styles.numberPadPlaceholder} /> // Optional: maintain layout space
+          <View style={styles.numberPadPlaceholder} />
         )}
       </View>
+
+      {/* Score Modal */}
+      <ScoreModal
+        visible={showScoreModal}
+        onClose={() => setShowScoreModal(false)}
+        score={score}
+        level={level}
+        isHighScore={isHighScore}
+        previousBest={bestScore}
+      />
     </SafeAreaView>
   );
 }
