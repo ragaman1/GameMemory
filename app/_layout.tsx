@@ -1,17 +1,50 @@
-import { Stack } from 'expo-router';
 import React from 'react';
+import { Stack } from 'expo-router';
+import { AuthProvider } from '../src/hooks/useAuth';
+import {
+  DarkTheme,
+  ThemeProvider,
+  DefaultTheme
+} from '@react-navigation/native';
+import { useColorScheme } from 'react-native';
 
-// Define the Root Layout using Expo Router's Stack navigator
-export default function RootLayout() {
+export default function AppLayout() {
+  const colorScheme = useColorScheme();
+
   return (
-    <Stack>
-      {/* Configure the screen for the 'index' route (index.tsx) */}
-      {/* The header title will be shown here */}
-      <Stack.Screen name="index" options={{ title: 'Number Memory Game' }} />
-      {/* If you add more screens later (e.g., app/settings.tsx), */}
-      {/* you would add more Stack.Screen components here */}
-    </Stack>
+    <AuthProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen
+            name="index"
+            options={{
+              headerShown: false,
+              title: 'Memory Game'
+            }}
+          />
+          <Stack.Screen
+            name="auth/login"
+            options={{
+              presentation: 'modal',
+              title: 'Login / Register',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+              headerTintColor: '#fff',
+            }}
+          />
+          <Stack.Screen
+            name="auth/profile"
+            options={{
+              title: 'Your Profile',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+              headerTintColor: '#fff',
+            }}
+          />
+        </Stack>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
-
-// Optional: Add basic error boundary or global context providers here if needed

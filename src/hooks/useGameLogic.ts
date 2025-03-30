@@ -1,7 +1,9 @@
-// app/hooks/useGameLogic.ts
+
 import { useState, useRef, useEffect } from 'react';
 import { generateSequence } from '../utils/gameLogic';
-import type {GameState, GameLogicReturn , DisplayMode} from '../types/game';
+import { useAuth } from './useAuth';
+import { saveScore } from '../utils/scoreStorage';
+import type { GameState, GameLogicReturn, DisplayMode } from '../types/game';
 
 export function useGameLogic(): GameLogicReturn {
   // Existing state
@@ -10,9 +12,11 @@ export function useGameLogic(): GameLogicReturn {
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerInput, setPlayerInput] = useState<number[]>([]);
   const [score, setScore] = useState(0);
-  // New state for display mode
   const [displayMode, setDisplayMode] = useState<DisplayMode>('sequential');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Get auth session
+  const { session } = useAuth();
 
   // Cleanup on unmount
   useEffect(() => {
@@ -64,7 +68,6 @@ export function useGameLogic(): GameLogicReturn {
     }
   };
 
-  // Add the delete function
   const handleDeletePress = () => {
     if (gameState !== 'recall' || playerInput.length === 0) {
       return;
@@ -76,16 +79,22 @@ export function useGameLogic(): GameLogicReturn {
     const isCorrect = input.every((num, index) => num === sequence[index]);
 
     if (isCorrect) {
-      setScore(score + level * 10);
+      const newScore = score + level * 10;
+      setScore(newScore);
       setGameState('success');
       
       timeoutRef.current = setTimeout(() => {
         const nextLevel = level + 1;
         setLevel(nextLevel);
-        startLevel(nextLevel); // Use the calculated value, not the state
+        startLevel(nextLevel);
       }, 1500);
     } else {
       setGameState('failure');
+      
+      // Save score when game ends (only if user is logged in and score > 0)
+      if (session.isAuthenticated && session.user && score > 0) {
+        saveScore(session.user.id, session.user.username, score, level);
+      }
     }
   };
 

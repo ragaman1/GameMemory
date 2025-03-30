@@ -1,14 +1,29 @@
-// app/index.tsx
-import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native'; 
+import { 
+  View, 
+  Text, 
+  Switch, 
+  SafeAreaView, 
+  TouchableOpacity,
+  StyleSheet 
+} from 'react-native'; 
+import { useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
 import { useGameLogic } from '../src/hooks/useGameLogic'; 
+import { useAuth } from '../src/hooks/useAuth';
+import { getUserBestScore } from '../src/utils/scoreStorage';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
 import StatusBanner from './components/StatusBanner';
 import { styles } from '../src/styles/gameStyles'; 
 
 import type { GameLogicReturn } from '../src/types/game';
+import type { UserScore } from '../src/types/user';
 
 export default function MemoryGame() {
+  const router = useRouter();
+  const { session } = useAuth();
+  const [bestScore, setBestScore] = useState<UserScore | null>(null);
+  
   // Single hook call with proper typing
   const {
     gameState,
@@ -22,6 +37,26 @@ export default function MemoryGame() {
     displayMode,
     toggleDisplayMode
   }: GameLogicReturn = useGameLogic();
+
+  // Load user's best score when authenticated
+  useEffect(() => {
+    if (session.isAuthenticated && session.user) {
+      getUserBestScore(session.user.id).then(score => {
+        if (score) setBestScore(score);
+      });
+    } else {
+      setBestScore(null);
+    }
+  }, [session]);
+
+  // Navigate to auth screens
+  const navigateToAuth = () => {
+    router.push('/auth/login');
+  };
+
+  const navigateToProfile = () => {
+    router.push('/auth/profile');
+  };
 
   // Render controls only when the game is idle or after failure.
   const renderGameControls = () => {
@@ -39,6 +74,35 @@ export default function MemoryGame() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Auth Status Bar */}
+      <View style={authStyles.authBar}>
+        {session.isAuthenticated && session.user ? (
+          <View style={authStyles.userInfo}>
+            <Text style={authStyles.username}>
+              {session.user.username}
+            </Text>
+            {bestScore && (
+              <Text style={authStyles.bestScore}>
+                Best: {bestScore.score} (Lv.{bestScore.level})
+              </Text>
+            )}
+            <TouchableOpacity 
+              style={authStyles.profileButton}
+              onPress={navigateToProfile}
+            >
+              <Text style={authStyles.profileButtonText}>Profile</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={authStyles.loginButton}
+            onPress={navigateToAuth}
+          >
+            <Text style={authStyles.loginText}>Login / Register</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Header with level and score info and mode toggle */}
       <View style={styles.header}>
         <Text style={styles.infoText}>Level: {level}</Text>
@@ -122,3 +186,48 @@ export default function MemoryGame() {
   );
 }
 
+const authStyles = StyleSheet.create({
+  authBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  username: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  bestScore: {
+    color: '#4E7AF0',
+    marginRight: 10,
+  },
+  profileButton: {
+    backgroundColor: '#333',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  profileButtonText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  loginButton: {
+    backgroundColor: '#4E7AF0',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  loginText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+});
