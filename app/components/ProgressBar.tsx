@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, Animated } from 'react-native';
+import { styles } from '../../src/styles/gameStyles';
 
 interface ProgressBarProps {
   progress: Animated.Value; // Value between 0 and 1
@@ -20,26 +21,13 @@ export default function ProgressBar({
   });
 
   return (
-    <View style={[styles.container, { height }]}>
+    <View style={[styles.progressBarContainer, { height }]}>
       <Animated.View 
         style={[
-          styles.bar, 
+          styles.progressBar,
           { backgroundColor: color, width }
         ]} 
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginVertical: 8,
-  },
-  bar: {
-    height: '100%',
-  },
-});

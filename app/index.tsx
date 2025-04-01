@@ -1,15 +1,20 @@
 // app/index.tsx
-import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native'; 
-import { useGameLogic } from '../src/hooks/useGameLogic'; 
+import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native';
+import { useGameLogic } from '../src/hooks/useGameLogic';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
-import StatusBanner from './components/StatusBanner';
-import { styles } from '../src/styles/gameStyles'; 
+import { createStyles } from '../src/styles/gameStyles';
+import { useTheme } from '../src/contexts/ThemeContext';
+// You'll need to install: npm install @expo/vector-icons
+import { Ionicons } from '@expo/vector-icons';
 
 import type { GameLogicReturn } from '../src/types/game';
 
 export default function MemoryGame() {
-  // Single hook call with proper typing
+  // Get theme context
+  const { theme, toggleTheme, colors } = useTheme();
+  const styles = createStyles(colors);
+  
   const {
     gameState,
     level,
@@ -39,10 +44,23 @@ export default function MemoryGame() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with level and score info and mode toggle */}
+      {/* Header with level, score, theme toggle, and mode toggle */}
       <View style={styles.header}>
-        <Text style={styles.infoText}>Level: {level}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.infoText}>Level: {level}</Text>
+          
+          {/* Theme toggle */}
+          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+            <Ionicons
+              name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'}
+              size={20}
+              color={colors.text}
+            />
+          </TouchableOpacity>
+        </View>
+        
         <Text style={styles.infoText}>Score: {score}</Text>
+        
         <View style={styles.modeToggle}>
           <Text style={styles.modeLabel}>
             {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
@@ -54,9 +72,8 @@ export default function MemoryGame() {
           />
         </View>
       </View>
+{/* Status Banner - Removed */}
 
-      {/* Status Banner */}
-      <StatusBanner state={gameState} />
 
       {/* Sequence Display / Input Area */}
       <View style={styles.gameArea}>

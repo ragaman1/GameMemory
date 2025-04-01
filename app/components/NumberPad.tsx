@@ -1,8 +1,9 @@
 // app/components/NumberPad.tsx
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text} from 'react-native';
 // Import an icon library (make sure @expo/vector-icons is installed)
 import { Ionicons } from '@expo/vector-icons';
+import { styles as gameStyles } from '../../src/styles/gameStyles';
 
 interface NumberPadProps {
   onNumberPress: (num: number) => void;
@@ -53,35 +54,26 @@ export default function NumberPad({
     setRandomizedLayout(newLayout);
   }, []); // Keep empty dependency array to run only once on mount
 
+  const rowStyle = {
+    marginBottom: buttonSpacing,
+  };
+
   const baseButtonStyle = {
     width: buttonSize,
     height: buttonSize,
     borderRadius: buttonSize / 2,
     marginHorizontal: buttonSpacing / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    ...gameStyles.numberPadButtonBase
   };
 
   const numberButtonStyle = {
     ...baseButtonStyle,
-    backgroundColor: '#3498db',
+    ...gameStyles.numberPadNumberButton
   };
 
-  // Optional: Style the delete button differently
   const deleteButtonStyle = {
     ...baseButtonStyle,
-    backgroundColor: '#e74c3c', // Example: Red color for delete
-  };
-
-  const disabledButtonStyle = {
-    backgroundColor: '#bdc3c7', // Universal disabled color
-    elevation: 0,
-    shadowOpacity: 0,
+    ...gameStyles.numberPadDeleteButton
   };
 
   const emptyCellStyle = {
@@ -90,14 +82,10 @@ export default function NumberPad({
     marginHorizontal: buttonSpacing / 2,
   };
 
-  const rowStyle = {
-    marginBottom: buttonSpacing,
-  };
-
   return (
-    <View style={styles.container}>
+    <View style={gameStyles.numberPadContainer}>
       {randomizedLayout.map((row, rowIndex) => (
-        <View key={`row-${rowIndex}`} style={[styles.row, rowStyle]}>
+        <View key={`row-${rowIndex}`} style={[gameStyles.numberPadRow, rowStyle]}>
           {row.map((item, colIndex) => {
             const key = `${item}-${rowIndex}-${colIndex}`;
 
@@ -107,9 +95,8 @@ export default function NumberPad({
                 <TouchableOpacity
                   key={key}
                   style={[
-                    styles.baseButton,
-                    deleteButtonStyle, // Apply delete style
-                    disabled && disabledButtonStyle,
+                    deleteButtonStyle,
+                    disabled && gameStyles.numberPadDisabledButton,
                   ]}
                   onPress={onDeletePress} // Use onDeletePress handler
                   disabled={disabled}
@@ -125,15 +112,14 @@ export default function NumberPad({
                 <TouchableOpacity
                   key={key}
                   style={[
-                    styles.baseButton,
-                    numberButtonStyle, // Apply number style
-                    disabled && disabledButtonStyle,
+                    numberButtonStyle,
+                    disabled && gameStyles.numberPadDisabledButton,
                   ]}
                   onPress={() => onNumberPress(item)} // Use onNumberPress
                   disabled={disabled}
                   activeOpacity={disabled ? 1 : 0.7}
                 >
-                  <Text style={styles.buttonText}>{item}</Text>
+                  <Text style={gameStyles.numberPadButtonText}>{item}</Text>
                 </TouchableOpacity>
               );
             } else {
@@ -152,24 +138,3 @@ export default function NumberPad({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    alignItems: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  baseButton: {
-    // Common styles moved to inline baseButtonStyle object
-  },
-  buttonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-});

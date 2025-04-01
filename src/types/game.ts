@@ -3,11 +3,6 @@
 // Game state types
 export type GameState = 'idle' | 'displaying' | 'recall' | 'success' | 'failure';
 
-// Component props
-export type StatusBannerProps = {
-  state: GameState;
-};
-
 export type SequenceDisplayProps = {
   sequence: number[];
   isDisplaying: boolean;
