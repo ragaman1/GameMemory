@@ -1,29 +1,79 @@
 └── GameMemory/
     ├── app/                   # Main application code (file-based routing)
-    │   ├── _layout.tsx        # Root layout for navigation
-    │   ├── index.tsx          # Main game screen
+    │   ├── _layout.tsx        # Root layout for navigation (includes Auth and theming)
+    │   ├── index.tsx          # Main game screen that connects game logic and UI
     │   └── components/        # Reusable UI components
-    │       ├── SequenceDisplay.tsx  # Displays numbers to memorize
-    │       ├── NumberPad.tsx        # Input pad for player responses
-    │       ├── GameControls.tsx     # Start/restart game buttons
-    │       ├── ProgressBar.tsx      # Shows game progress
-    │       └── StatusBanner.tsx     # Displays game status messages
+    │       ├── AuthHeader.tsx       # Header showing auth info and best score
+    │       ├── SequenceDisplay.tsx  # Displays the generated number sequence
+    │       ├── NumberPad.tsx        # Input pad for player sequence entry
+    │       ├── GameControls.tsx     # Start/Restart game buttons
+    │       ├── ProgressBar.tsx      # (If used) Visual indicator of progress
+    │       ├── StatusBanner.tsx     # Displays game status messages (idle, success, failure)
+    │       └── ScoreModal.tsx       # Modal to show the final score & high score info
     ├── src/
     │   ├── hooks/
-    │   │   └── useGameLogic.ts # Custom hook for game state management
+    │   │   ├── useGameLogic.ts   # Custom hook managing game state and level progression
+    │   │   └── useAuth.ts        # Auth hook for managing session and user
     │   ├── styles/
-    │   │   └── gameStyles.ts  # Style definitions
+    │   │   └── gameStyles.ts     # Centralized style definitions for game components
     │   ├── types/
-    │   │   └── game.ts        # Type definitions
+    │   │   ├── game.ts           # Type definitions for game logic (state, props, etc.)
+    │   │   └── user.ts           # Type definitions for user information (id, username, etc.)
     │   └── utils/
-    │       └── gameLogic.ts   # Game logic utilities
-    ├── assets/                # Static assets
+    │       ├── gameLogic.ts      # Utilities to generate random number sequences
+    │       └── scoreStorage.ts   # Functions to save and retrieve score data
+    ├── assets/                  # Static assets (images, fonts, sounds)
     │   ├── fonts/
     │   ├── images/
     │   └── sounds/
-    ├── app.json               # Expo configuration file
-    ├── package.json           # Project dependencies and scripts
-    └── tsconfig.json          # TypeScript configuration
+    ├── app.json                 # Expo configuration file
+    ├── package.json             # Project dependencies and scripts
+    ├── tsconfig.json            # TypeScript configuration
+    └── README.md                # Overview, setup instrup
+
+Directory structure:
+└── ragaman1-gamememory/
+    ├── README.md
+    ├── app.json
+    ├── deirectory_structure.md
+    ├── document.md
+    ├── login.md
+    ├── package.json
+    ├── tsconfig.json
+    ├── app/
+    │   ├── _layout.tsx
+    │   ├── index.tsx
+    │   ├── auth/
+    │   │   ├── login.tsx
+    │   │   └── profile.tsx
+    │   └── components/
+    │       ├── AuthHeader.tsx
+    │       ├── GameControls.tsx
+    │       ├── NumberPad.tsx
+    │       ├── ProgressBar.tsx
+    │       ├── ScoreBoard.tsx
+    │       ├── ScoreModal.tsx
+    │       ├── SequenceDisplay.tsx
+    │       ├── StatusBanner.tsx
+    │       └── coreModal.tsx
+    ├── assets/
+    │   ├── fonts/
+    │   │   └── SpaceMono-Regular.ttf
+    │   ├── images/
+    │   └── sounds/
+    └── src/
+        ├── hooks/
+        │   ├── useAuth.tsx
+        │   └── useGameLogic.ts
+        ├── styles/
+        │   └── gameStyles.ts
+        ├── types/
+        │   ├── game.ts
+        │   └── user.ts
+        └── utils/
+            ├── authStorage.ts
+            ├── gameLogic.ts
+            └── scoreStorage.ts
 
 
 Game Components

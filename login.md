@@ -1971,3 +1971,156 @@ To fully implement this, you'll need to:
 - Possibly add more theme options or sound effects
 
 These changes should give your users a personalized gaming experience that matches their preferences!
+
+####################################
+Let's improve the navigation transition between the game and profile page. Based on your directory structure, you're using Expo Router which should provide smooth transitions, but there might be issues with how the navigation is being triggered.
+
+Here's how to improve the navigation transition:
+
+```jsx
+// In your MemoryGame component (app/index.tsx)
+
+import { useRouter } from 'expo-router';
+// Other imports...
+
+export default function MemoryGame() {
+  const router = useRouter();
+  const { session } = useAuth();
+  // Other state and logic...
+
+  // Add a navigation function
+  const navigateToProfile = () => {
+    // Save any game state if needed
+    router.push('/auth/profile');
+  };
+
+  // Pass this to your AuthHeader
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Pass the navigation function to AuthHeader */}
+      <AuthHeader 
+        bestScore={bestScore} 
+        onProfilePress={navigateToProfile} 
+      />
+
+      {/* Rest of your component */}
+    </SafeAreaView>
+  );
+}
+```
+
+Then update your AuthHeader component:
+
+```jsx
+// app/components/AuthHeader.tsx
+
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useAuth } from '../../src/hooks/useAuth';
+import type { UserScore } from '../../src/types/user';
+
+type AuthHeaderProps = {
+  bestScore: UserScore | null;
+  onProfilePress: () => void; // Add this prop
+};
+
+export default function AuthHeader({ bestScore, onProfilePress }: AuthHeaderProps) {
+  const { session } = useAuth();
+
+  return (
+    <View style={styles.authBar}>
+      {session.isAuthenticated && session.user ? (
+        <View style={styles.userInfo}>
+          <Text style={styles.username}>{session.user.username}</Text>
+          {bestScore && (
+            <Text style={styles.bestScore}>Best: {bestScore.score}</Text>
+          )}
+          <TouchableOpacity 
+            style={styles.profileButton} 
+            onPress={onProfilePress} // Use the prop instead of direct navigation
+          >
+            <Text style={styles.profileButtonText}>Profile</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={onProfilePress} // Use same function for login
+        >
+          <Text style={styles.loginText}>Login</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  // Your styles...
+});
+```
+
+Additionally, to make the navigation smoother:
+
+1. Add proper navigation animations in your `_layout.tsx` file:
+
+```jsx
+// app/_layout.tsx
+import { Stack } from 'expo-router';
+
+export default function Layout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right', // You can try different animations
+        gestureEnabled: true,
+        animationDuration: 200,
+        presentation: 'card'
+      }}
+    />
+  );
+}
+```
+
+2. Make sure your profile page loads quickly by optimizing any heavy operations:
+
+```jsx
+// app/auth/profile.tsx
+import { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
+import { useAuth } from '../../src/hooks/useAuth';
+
+export default function Profile() {
+  const { session } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    // Load user data
+    const loadData = async () => {
+      // Fetch needed data
+      setLoading(false); 
+    };
+    
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#4E7AF0" />
+      </View>
+    );
+  }
+  
+  // Rest of your profile component
+}
+```
+
+These changes will help create a smoother transition by:
+1. Using proper navigation methods through Expo Router
+2. Adding animation configurations 
+3. Using a loading state on the profile page
+4. Centralizing navigation logic
+
+The key is to ensure navigation is handled consistently and that the destination page is ready to render quickly when users navigate to it.

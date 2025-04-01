@@ -4,7 +4,7 @@ import {
   Switch, 
   SafeAreaView, 
   TouchableOpacity,
-  StyleSheet 
+  StyleSheet
 } from 'react-native'; 
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -15,7 +15,6 @@ import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
 import StatusBanner from './components/StatusBanner';
 import AuthHeader from './components/AuthHeader';
-import ScoreModal from './components/ScoreModal';
 import { styles } from '../src/styles/gameStyles'; 
 
 import type { GameLogicReturn } from '../src/types/game';
@@ -25,8 +24,6 @@ export default function MemoryGame() {
   const router = useRouter();
   const { session } = useAuth();
   const [bestScore, setBestScore] = useState<UserScore | null>(null);
-  const [showScoreModal, setShowScoreModal] = useState(false);
-  const [isHighScore, setIsHighScore] = useState(false);
   
   // Game logic hook with proper typing
   const {
@@ -53,21 +50,17 @@ export default function MemoryGame() {
     }
   }, [session]);
 
-  // Show score modal when game ends
+  // Update best score when game ends (but no alerts or modals)
   useEffect(() => {
-    if (gameState === 'failure' && score > 0) {
-      // Check if it's a high score
-      const newHighScore = !bestScore || score > bestScore.score;
-      setIsHighScore(newHighScore);
-      setShowScoreModal(true);
-      
-      // If it's a new high score, refresh the best score
-      if (newHighScore && session.isAuthenticated && session.user) {
+    if (gameState === 'failure' && score > 0 && session.isAuthenticated && session.user) {
+      // Check if score is higher than current best
+      if (!bestScore || score > bestScore.score) {
+        // Refresh best score
         setTimeout(() => {
           session.user && getUserBestScore(session.user.id).then(score => {
             if (score) setBestScore(score);
           });
-        }, 1000); // Short delay to ensure score is saved
+        }, 1000);
       }
     }
   }, [gameState, score, bestScore, session]);
@@ -169,16 +162,6 @@ export default function MemoryGame() {
           <View style={styles.numberPadPlaceholder} />
         )}
       </View>
-
-      {/* Score Modal */}
-      <ScoreModal
-        visible={showScoreModal}
-        onClose={() => setShowScoreModal(false)}
-        score={score}
-        level={level}
-        isHighScore={isHighScore}
-        previousBest={bestScore}
-      />
     </SafeAreaView>
   );
 }

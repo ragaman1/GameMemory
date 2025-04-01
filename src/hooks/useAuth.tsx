@@ -1,3 +1,4 @@
+// src/hooks/useAuth.tsx
 import { useState, useEffect, createContext, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, UserSession } from '../types/user';
