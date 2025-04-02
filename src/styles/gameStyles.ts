@@ -164,43 +164,64 @@ export const createStyles = (colors: typeof LightTheme | typeof DarkTheme) => St
     marginLeft: 15,
   },
   
-  // NumberPad styles
-  numberPadContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    alignItems: 'center',
-  },
-  numberPadRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  numberPadButtonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  numberPadButtonBase: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  numberPadNumberButton: {
-    backgroundColor: '#3498db',
-  },
-  numberPadDeleteButton: {
-    backgroundColor: '#e74c3c',
-  },
-  numberPadDisabledButton: {
-    backgroundColor: '#bdc3c7',
-    elevation: 0,
-    shadowOpacity: 0,
-  }
+// Improved NumberPad styles
+numberPadContainer: {
+  width: '100%',
+  padding: 10,
+  paddingBottom: 20,
+  marginVertical: 10,
+  backgroundColor: colors.card,
+  borderRadius: 16,
+  borderWidth: 0, // Remove border for cleaner look
+  elevation: 8, // Increase container elevation
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  alignItems: 'center',
+},
+numberPadRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between', // Better spacing
+  width: '90%', // Control width of rows
+  marginVertical: 5,
+},
+numberPadButtonBase: {
+  justifyContent: 'center',
+  alignItems: 'center',
+  borderRadius: 25, // Half of width/height for perfect circle
+  elevation: 5,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  marginHorizontal: 30, // Adjusted for better spacing
+},
+numberPadButtonText: {
+  fontSize: 20, 
+  fontWeight: '600', // Slightly lighter than bold
+  color: '#fff',
+},
+numberPadNumberButton: {
+  backgroundColor: '#4a90e2', // More refined blue
+},
+numberPadDeleteButton: {
+  backgroundColor: '#e74c3c',
+},
+numberPadDisabledButton: {
+  backgroundColor: '#d1d8e0',
+  opacity: 0.8,
+  elevation: 0,
+  shadowOpacity: 0,
+},
+numberPadDisabledContent: {
+  color: '#7f8c8d',
+  opacity: 0.7,
+},
+numberPadDeleteIcon: {
+  color: '#fff',
+  fontSize: 20, // Consistent sizing
+},
 });
 
 // For backward compatibility

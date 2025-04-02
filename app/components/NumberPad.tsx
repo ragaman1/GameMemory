@@ -1,25 +1,24 @@
 // app/components/NumberPad.tsx
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text} from 'react-native';
-// Import an icon library (make sure @expo/vector-icons is installed)
+import { View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles as gameStyles } from '../../src/styles/gameStyles';
+// Import your styles
+import { createStyles } from '../../src/styles/gameStyles';
+import { useTheme } from '../../src/contexts/ThemeContext';
 
 interface NumberPadProps {
   onNumberPress: (num: number) => void;
-  onDeletePress: () => void; // New prop for delete action
+  onDeletePress: () => void;
   disabled: boolean;
   buttonSize?: number;
   buttonSpacing?: number;
 }
 
-const DEFAULT_BUTTON_SIZE = 75;
-const DEFAULT_BUTTON_SPACING = 5;
+const DEFAULT_BUTTON_SIZE = 55; // Default size from your original code
+const DEFAULT_BUTTON_SPACING = 10; // Default spacing from your original code
 
-// Define a type for the layout elements
 type LayoutElement = number | 'delete' | null;
 
-// Helper function to shuffle an array (Fisher-Yates algorithm)
 const shuffleArray = (array: number[]) => {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -31,55 +30,66 @@ const shuffleArray = (array: number[]) => {
 
 export default function NumberPad({
   onNumberPress,
-  onDeletePress, // Destructure the new prop
+  onDeletePress,
   disabled,
   buttonSize = DEFAULT_BUTTON_SIZE,
   buttonSpacing = DEFAULT_BUTTON_SPACING,
 }: NumberPadProps) {
-  // Update state type to include 'delete'
+  const { colors } = useTheme();
+  const gameStyles = createStyles(colors);
   const [randomizedLayout, setRandomizedLayout] = useState<Array<Array<LayoutElement>>>([]);
 
   useEffect(() => {
-    // Generate all numbers (0-9) and shuffle them
     const allNumbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
-
-    // Create the randomized layout, adding 'delete' to the last row
     const newLayout: Array<Array<LayoutElement>> = [
       [allNumbers[0], allNumbers[1], allNumbers[2]],
       [allNumbers[3], allNumbers[4], allNumbers[5]],
       [allNumbers[6], allNumbers[7], allNumbers[8]],
-      [null, allNumbers[9], 'delete'], // Place 'delete' identifier
+      [null, allNumbers[9], 'delete'],
     ];
-
     setRandomizedLayout(newLayout);
-  }, []); // Keep empty dependency array to run only once on mount
+  }, []);
 
   const rowStyle = {
     marginBottom: buttonSpacing,
   };
 
+  // Combine dynamic sizing with base styles from StyleSheet
   const baseButtonStyle = {
     width: buttonSize,
     height: buttonSize,
-    borderRadius: buttonSize / 2,
-    marginHorizontal: buttonSpacing / 2,
-    ...gameStyles.numberPadButtonBase
+    ...gameStyles.numberPadButtonBase, // Apply shadow, borderRadius, margin etc.
   };
 
-  const numberButtonStyle = {
-    ...baseButtonStyle,
-    ...gameStyles.numberPadNumberButton
-  };
+  // Combine base + specific number styles + conditional disabled BG
+  const numberButtonStyle = [
+    baseButtonStyle,
+    gameStyles.numberPadNumberButton,
+    disabled && gameStyles.numberPadDisabledButton,
+  ];
 
-  const deleteButtonStyle = {
-    ...baseButtonStyle,
-    ...gameStyles.numberPadDeleteButton
-  };
+  // Combine base + specific delete styles + conditional disabled BG
+  const deleteButtonStyle = [
+    baseButtonStyle,
+    gameStyles.numberPadDeleteButton,
+    disabled && gameStyles.numberPadDisabledButton,
+  ];
+
+  // Determine TEXT color: Disabled style or default style
+  const textStyle = [
+    gameStyles.numberPadButtonText, // Default white text style
+    disabled && gameStyles.numberPadDisabledContent, // Apply disabled color if needed
+  ];
+
+  // Determine ICON color: Disabled color or default icon color (white)
+  const iconColor = disabled
+    ? gameStyles.numberPadDisabledContent.color // Use the new disabled content color
+    : gameStyles.numberPadDeleteIcon.color;     // Use the defined white icon color
 
   const emptyCellStyle = {
     width: buttonSize,
     height: buttonSize,
-    marginHorizontal: buttonSpacing / 2,
+    marginHorizontal: 30, // Add this to match button margins
   };
 
   return (
@@ -90,45 +100,41 @@ export default function NumberPad({
             const key = `${item}-${rowIndex}-${colIndex}`;
 
             if (item === 'delete') {
-              // Render Delete Button
               return (
                 <TouchableOpacity
                   key={key}
-                  style={[
-                    deleteButtonStyle,
-                    disabled && gameStyles.numberPadDisabledButton,
-                  ]}
-                  onPress={onDeletePress} // Use onDeletePress handler
+                  style={deleteButtonStyle}
+                  onPress={onDeletePress}
                   disabled={disabled}
                   activeOpacity={disabled ? 1 : 0.7}
                 >
-                  {/* Use an icon for delete */}
-                   <Ionicons name="backspace-outline" size={28} color="#fff" />
+                  <Ionicons
+                    name="backspace-outline"
+                    size={buttonSize * 0.4}
+                    color={iconColor}
+                  />
                 </TouchableOpacity>
               );
             } else if (typeof item === 'number') {
-              // Render Number Button
               return (
                 <TouchableOpacity
                   key={key}
-                  style={[
-                    numberButtonStyle,
-                    disabled && gameStyles.numberPadDisabledButton,
-                  ]}
-                  onPress={() => onNumberPress(item)} // Use onNumberPress
+                  style={numberButtonStyle}
+                  onPress={() => onNumberPress(item)}
                   disabled={disabled}
                   activeOpacity={disabled ? 1 : 0.7}
                 >
-                  <Text style={gameStyles.numberPadButtonText}>{item}</Text>
+                  <Text style={textStyle}>{item}</Text>
                 </TouchableOpacity>
               );
             } else {
-              // Render Empty Space
               return (
                 <View
                   key={`empty-${rowIndex}-${colIndex}`}
                   style={emptyCellStyle}
-                />
+                >
+                  <Text style={{ opacity: 0 }}> </Text>
+                </View>
               );
             }
           })}
@@ -137,4 +143,3 @@ export default function NumberPad({
     </View>
   );
 }
-

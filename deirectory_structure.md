@@ -6,9 +6,10 @@
     │       ├── SequenceDisplay.tsx  # Displays numbers to memorize
     │       ├── NumberPad.tsx        # Input pad for player responses
     │       ├── GameControls.tsx     # Start/restart game buttons
-    │       ├── ProgressBar.tsx      # Shows game progress
-    │       └── StatusBanner.tsx     # Displays game status messages
+    │       └── ProgressBar.tsx      # Shows game progress
     ├── src/
+    │   ├── contexts/
+    │   │   └── ThemeContext.tsx    # Context for managing app theme
     │   ├── hooks/
     │   │   └── useGameLogic.ts # Custom hook for game state management
     │   ├── styles/
@@ -54,3 +55,5 @@ Implements custom hooks for state management
 Separates concerns with dedicated components
 Utilizes file-based routing for navigation
 This documentation reflects the current structure and implementation of the GameMemory app as seen in the repository.
+
+
