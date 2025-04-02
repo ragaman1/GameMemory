@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React, { useState, useEffect, useCallback} from 'react';
+import { View, Text, Animated } from 'react-native';
 import ProgressBar from './ProgressBar';
-import type { DisplayMode } from '../types/game';
+import type { DisplayMode } from '../../src/types/game';
+import { styles } from '../../src/styles/gameStyles';
 
 interface SequenceDisplayProps {
   sequence: number[];
@@ -66,36 +67,47 @@ export default function SequenceDisplay({
     };
   }, [sequence, level, fadeAnim, progressAnim]);
   
-  // Simultaneous display logic
   const displaySimultaneously = useCallback(() => {
-    // Show all numbers at once
+    fadeAnim.setValue(0);
+    progressAnim.setValue(0);
+    
+    // Calculate display time
+    const displayTime = Math.max(2000, (level * 300) + (sequence.length * 200));
+    
+    // 1. First fade in the numbers
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
     
-    // Calculate display time based on level and sequence length
-    const displayTime = Math.max(2000, (level * 300) + (sequence.length * 200));
+    // 2. Start the progress separately after fade-in
+    const progressStartTimeout = setTimeout(() => {
+      Animated.timing(progressAnim, {
+        toValue: 1,
+        duration: displayTime,
+        useNativeDriver: false,
+      }).start();
+    }, 300); // Start after fade-in completes
     
-    // Animate progress from 0 to 1 over the full display time
-    Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: displayTime,
-      useNativeDriver: false,
-    }).start();
-    
-    const timeout = setTimeout(() => {
+    // 3. Fade out exactly when progress should finish
+    const fadeOutTimeout = setTimeout(() => {
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start();
-    }, displayTime);
+    }, 300 + displayTime); // Start right after progress completes
     
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(progressStartTimeout);
+      clearTimeout(fadeOutTimeout);
+      fadeAnim.setValue(0);
+      progressAnim.setValue(0);
+    };
   }, [sequence, level, fadeAnim, progressAnim]);
-  
+
+
   useEffect(() => {
     if (isDisplaying && sequence.length > 0) {
       setCurrentIndex(-1);
@@ -112,21 +124,23 @@ export default function SequenceDisplay({
   }, [isDisplaying, sequence, level, displayMode, displaySequentially, displaySimultaneously]);
   
   return (
-    <View style={styles.container}>
+    <View style={styles.sequenceDisplayContainer}>
       {/* Progress bar */}
       {isDisplaying && (
-        <ProgressBar 
-          progress={progressAnim} 
-          color="#2ecc71"
-          height={8}
-        />
+        <View style={styles.sequenceProgressBarWrapper}>
+          <ProgressBar
+            progress={progressAnim}
+            color="#2ecc71"
+            height={8}
+          />
+        </View>
       )}
       
       {isDisplaying ? (
         displayMode === 'sequential' ? (
           // Sequential display - show one number at a time
-          <Animated.View style={[styles.numberDisplay, { opacity: fadeAnim }]}>
-            <Text style={styles.number}>
+          <Animated.View style={[styles.sequenceNumberDisplay, { opacity: fadeAnim }]}>
+            <Text style={styles.sequenceNumberText}>
               {currentIndex >= 0 && currentIndex < sequence.length 
                 ? String(sequence[currentIndex]) 
                 : ""}
@@ -134,66 +148,17 @@ export default function SequenceDisplay({
           </Animated.View>
         ) : (
           // Simultaneous display - show all numbers
-          <Animated.View style={[styles.simultaneousDisplay, { opacity: fadeAnim }]}>
-            <Text style={styles.simultaneousNumbers}>
+          <Animated.View style={[styles.sequenceSimultaneousDisplay, { opacity: fadeAnim }]}>
+            <Text style={styles.sequenceSimultaneousNumbers}>
               {sequence.join(' ')}
             </Text>
           </Animated.View>
         )
       ) : (
-        <View style={styles.placeholder}>
+        <View style={styles.sequencePlaceholder}>
           <Text style={styles.placeholderText}>Sequence will appear here</Text>
         </View>
       )}
     </View>
   );
 }
-
-// Styles 
-
-const styles = StyleSheet.create({
-  container: {
-    height: 150,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  numberDisplay: {
-    height: 120,
-    width: 120,
-    borderRadius: 60,
-    backgroundColor: '#3498db',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  number: {
-    fontSize: 60,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  simultaneousDisplay: {
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: '#3498db',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  simultaneousNumbers: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  placeholder: {
-    height: 120,
-    width: 120,
-    borderRadius: 60,
-    backgroundColor: '#ecf0f1',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#95a5a6',
-  },
-});

@@ -174,7 +174,7 @@ numberPadContainer: {
   borderRadius: 16,
   borderWidth: 0, // Remove border for cleaner look
   elevation: 8, // Increase container elevation
-  shadowColor: '#000',
+  shadowColor: '#000', // Consistent shadow color
   shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.2,
   shadowRadius: 8,
@@ -191,7 +191,7 @@ numberPadButtonBase: {
   alignItems: 'center',
   borderRadius: 25, // Half of width/height for perfect circle
   elevation: 5,
-  shadowColor: '#000',
+  shadowColor: '#000', // Consistent shadow color
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.25,
   shadowRadius: 3.84,
@@ -200,29 +200,77 @@ numberPadButtonBase: {
 numberPadButtonText: {
   fontSize: 20, 
   fontWeight: '600', // Slightly lighter than bold
-  color: '#fff',
+  color: '#fff', // White for contrast
 },
 numberPadNumberButton: {
-  backgroundColor: '#4a90e2', // More refined blue
+  backgroundColor: '#333333', // blackish grey
 },
 numberPadDeleteButton: {
-  backgroundColor: '#e74c3c',
+  backgroundColor: '#e74c3c', // Refined red
 },
 numberPadDisabledButton: {
-  backgroundColor: '#d1d8e0',
+  backgroundColor: '#d1d8e0', // Light grey for disabled state
   opacity: 0.8,
   elevation: 0,
   shadowOpacity: 0,
 },
 numberPadDisabledContent: {
-  color: '#7f8c8d',
+  color: '#7f8c8d', // Grey for disabled state
   opacity: 0.7,
 },
 numberPadDeleteIcon: {
-  color: '#fff',
+  color: '#fff', // White for contrast
   fontSize: 20, // Consistent sizing
 },
+  // SequenceDisplay styles
+  sequenceDisplayContainer: {
+    height: 350,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  sequenceProgressBarWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+  },
+  sequenceNumberDisplay: {
+    height: 120,
+    width: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgb(203, 42, 42)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sequenceNumberText: {
+    fontSize: 60,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  sequenceSimultaneousDisplay: {
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: 'rgb(6, 5, 5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sequenceSimultaneousNumbers: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  sequencePlaceholder: {
+    height: 120,
+    width: 120,
+    borderRadius: 60,
+    backgroundColor: colors.text,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
-
-// For backward compatibility
-export const styles = createStyles(LightTheme);
+  
+  // For backward compatibility
+  export const styles = createStyles(LightTheme);
