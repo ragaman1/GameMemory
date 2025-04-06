@@ -1,19 +1,70 @@
+// app/_layout.tsx
 import { Stack } from 'expo-router';
-import React from 'react';
-import { ThemeProvider } from '../src/contexts/ThemeContext';
+import React, { useState } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
+import SettingsModal from './components/SettingsModal';
 
-export default function RootLayout() {
+// We'll use this custom hook to manage the settings modal visibility
+function useSettingsModal() {
+  const [visible, setVisible] = useState(false);
+  const open = () => setVisible(true);
+  const close = () => setVisible(false);
+  return { visible, open, close };
+}
+
+// The main layout component
+function AppStack() {
+  const { colors } = useTheme();
+  const settings = useSettingsModal();
+  
   return (
-    <ThemeProvider>
-      <Stack>
-      {/* Configure the screen for the 'index' route (index.tsx) */}
-      {/* The header title will be shown here */}
-      <Stack.Screen name="index" options={{ title: 'Number Memory Game' }} />
-      {/* If you add more screens later (e.g., app/settings.tsx), */}
-      {/* you would add more Stack.Screen components here */}
+    <>
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: colors.card,
+          },
+          headerTintColor: colors.text,
+          headerTitleStyle: {
+            color: colors.text,
+          },
+        }}
+      >
+        <Stack.Screen 
+          name="index" 
+          options={{ 
+            title: 'Number Memory Game',
+            headerRight: () => (
+              <TouchableOpacity 
+                onPress={settings.open} 
+                style={{ marginRight: 15 }}
+              >
+                <Ionicons 
+                  name="settings-outline" 
+                  size={24} 
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            ) 
+          }} 
+        />
       </Stack>
-    </ThemeProvider>
+      
+      <SettingsModal 
+        visible={settings.visible} 
+        onClose={settings.close} 
+      />
+    </>
   );
 }
 
-// Optional: Add basic error boundary or global context providers here if needed
+// Root layout that provides the theme context
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AppStack />
+    </ThemeProvider>
+  );
+}
