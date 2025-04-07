@@ -2,6 +2,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useGame } from '../../src/contexts/GameContext';
 
 type SettingsModalProps = {
   visible: boolean;
@@ -10,11 +11,10 @@ type SettingsModalProps = {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
   const { theme, toggleTheme, colors } = useTheme();
+  const { displayMode, toggleDisplayMode, gameState } = useGame();
   
-  const handleThemeToggle = () => {
-    toggleTheme();
-    // No need to close the modal after toggling
-  };
+  // Only allow changing display mode when game is idle or failed
+  const canChangeDisplayMode = gameState === 'idle' || gameState === 'failure';
   
   return (
     <Modal
@@ -27,15 +27,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
         <View style={[styles.modalView, { backgroundColor: colors.card }]}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>Settings</Text>
           
+          {/* Theme toggle */}
           <View style={styles.settingRow}>
             <Text style={[styles.settingLabel, { color: colors.text }]}>
               Dark Mode
             </Text>
             <Switch
               value={theme === 'dark'}
-              onValueChange={handleThemeToggle}
+              onValueChange={toggleTheme}
               trackColor={{ false: '#767577', true: colors.inputDotFilled }}
             />
+          </View>
+          
+          {/* Display mode toggle */}
+          <View style={styles.settingRow}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>
+              Display Mode
+            </Text>
+            <View style={styles.displayModeContainer}>
+              <Text style={[styles.modeLabel, { color: colors.textSecondary }]}>
+                {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
+              </Text>
+              <Switch
+                value={displayMode === 'simultaneous'}
+                onValueChange={toggleDisplayMode}
+                disabled={!canChangeDisplayMode}
+                trackColor={{ false: '#767577', true: colors.inputDotFilled }}
+              />
+            </View>
           </View>
           
           <TouchableOpacity
@@ -51,7 +70,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  // ... same styles as before
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -86,6 +104,13 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
+  },
+  displayModeContainer: {
+    alignItems: 'flex-end',
+  },
+  modeLabel: {
+    fontSize: 12,
+    marginBottom: 4,
   },
   closeButton: {
     borderRadius: 8,
