@@ -1,16 +1,25 @@
 // app/types/game.ts
-
 // Game state types
-export type GameState = 'idle' | 'displaying' | 'recall' | 'success' | 'failure';
+export type GameState = 'idle' | 'displaying' | 'recall' | 'success' | 'failure' | 'review' | 'gameover';
+
+// Add Review props type
+export type SequenceReviewProps = {
+  correct: number[];
+  player: number[];
+  lives: number;
+  level: number;
+}
 
 export type SequenceDisplayProps = {
   sequence: number[];
   isDisplaying: boolean;
   level: number;
+  displayMode: DisplayMode;
 };
 
 export type NumberPadProps = {
   onNumberPress: (num: number) => void;
+  onDeletePress: () => void;
   disabled: boolean;
 };
 
@@ -36,6 +45,9 @@ export interface GameLogicReturn {
   // new fields
   displayMode: DisplayMode;
   toggleDisplayMode: () => void;
+  // Lives system fields
+  lives: number;
+  lastFailedSequence: { correct: number[], player: number[] } | null;
 }
 
 // Optional: Configuration types

@@ -270,6 +270,39 @@ numberPadDeleteIcon: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+
+  // Add new styles for game info area
+  gameInfoArea: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 16,
+    marginTop: 10,
+  },
+  // Game over styles
+  gameOverArea: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  gameOverText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  finalScoreText: {
+    fontSize: 22,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  levelReachedText: {
+    fontSize: 18,
+    color: colors.text,
+  },
+  
+
 });
   
   // For backward compatibility
