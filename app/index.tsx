@@ -1,5 +1,5 @@
 // app/index.tsx
-import { View, Text, Switch, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, Switch, SafeAreaView, Platform, TouchableOpacity } from 'react-native';
 import { useGameLogic } from '../src/hooks/useGameLogic';
 import SequenceDisplay from './components/SequenceDisplay';
 import NumberPad from './components/NumberPad';
@@ -10,7 +10,7 @@ import { useTheme } from '../src/contexts/ThemeContext';
 // Removed Ionicons import as it was only used in the removed header
 // import { Ionicons } from '@expo/vector-icons';
 
-import type { GameLogicReturn } from '../src/types/game';
+import type { GameLogicReturn, GameState } from '../src/types/game';
 
 export default function MemoryGame() {
   // Get theme context
@@ -27,7 +27,7 @@ export default function MemoryGame() {
     handleNumberPress,
     handleDeletePress,
     displayMode,
-    toggleDisplayMode, // Keep this logic if needed elsewhere, e.g., in settings
+    toggleDisplayMode,
     lives,
     lastFailedSequence
   }: GameLogicReturn = useGameLogic();
@@ -36,7 +36,12 @@ export default function MemoryGame() {
   const renderGameControls = () => {
     if (gameState === 'idle' || gameState === 'failure' || gameState === 'gameover') {
       return (
-        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={startGame}
+          accessibilityLabel="Start Game Button"
+          accessibilityRole="button"
+        >
           <Text style={styles.buttonText}>
             {gameState === 'gameover' ? 'Game Over - Restart' :
              gameState === 'failure' ? 'Try Again' : 'Start Game'}
@@ -48,7 +53,7 @@ export default function MemoryGame() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} accessibilityLabel="Game Screen">
       {/* REMOVED THE <View style={styles.header}> BLOCK THAT WAS HERE */}
 
       {/* Status Banner - Removed */}
@@ -104,16 +109,18 @@ export default function MemoryGame() {
                   <Text style={styles.infoText}>Score: {score}</Text>
                  </View>
                  {/* Display Mode Toggle */}
-                 { (gameState === 'idle' || gameState === 'failure' || gameState === 'gameover') &&
+                 { ((gameState as GameState) === 'idle' || (gameState as GameState) === 'failure' || (gameState as GameState) === 'gameover') &&
                   <View style={styles.modeToggle}>
                       <Text style={[styles.modeLabel, { color: colors.text }]}>
                         {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
                       </Text>
                       <Switch
+                        accessibilityLabel="Display Mode Toggle"
+                        accessibilityRole="switch"
                         value={displayMode === 'simultaneous'}
                         onValueChange={toggleDisplayMode}
                         // Disabled logic might need adjustment based on exact state transitions
-                        disabled={gameState !== 'idle' && gameState !== 'failure' && gameState !== 'gameover'}
+                        disabled={!((gameState as GameState) === 'idle' || (gameState as GameState) === 'failure' || (gameState as GameState) === 'gameover')}
                         // Consider adding theme colors to the switch track/thumb if desired
                       />
                  </View>
@@ -137,7 +144,7 @@ export default function MemoryGame() {
                   <Switch
                     value={displayMode === 'simultaneous'}
                     onValueChange={toggleDisplayMode}
-                    disabled={gameState !== 'idle' && gameState !== 'failure' && gameState !== 'gameover'}
+                    disabled={!((gameState as GameState) === 'idle' || (gameState as GameState) === 'failure' || (gameState as GameState) === 'gameover')}
                   />
               </View>
              <Text style={styles.placeholderText}>Press Start</Text>

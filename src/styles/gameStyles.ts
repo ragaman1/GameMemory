@@ -44,6 +44,12 @@ export const createStyles = (colors: typeof LightTheme | typeof DarkTheme) => St
     fontSize: 18,
     fontWeight: 'bold',
   },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
   infoText: {
     color: colors.text,
     fontSize: 16,
