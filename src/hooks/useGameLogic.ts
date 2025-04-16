@@ -1,7 +1,7 @@
 // app/hooks/useGameLogic.ts
 import { useState, useRef, useEffect } from 'react';
 import { generateSequence } from '../utils/gameLogic';
-import type {GameState, GameLogicReturn , DisplayMode} from '../types/game';
+import type {GameState, GameLogicReturn, DisplayMode} from '../types/game';
 
 export function useGameLogic(): GameLogicReturn {
   // Existing state
@@ -10,8 +10,15 @@ export function useGameLogic(): GameLogicReturn {
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerInput, setPlayerInput] = useState<number[]>([]);
   const [score, setScore] = useState(0);
-  // New state for display mode
   const [displayMode, setDisplayMode] = useState<DisplayMode>('sequential');
+  
+  // New state for lives system
+  const [lives, setLives] = useState(4);
+  const [lastFailedSequence, setLastFailedSequence] = useState<{
+    correct: number[],
+    player: number[]
+  } | null>(null);
+  
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup on unmount
@@ -50,6 +57,8 @@ export function useGameLogic(): GameLogicReturn {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setLevel(1);
     setScore(0);
+    setLives(4);
+    setLastFailedSequence(null);
     startLevel(1);
   };
 
@@ -64,7 +73,6 @@ export function useGameLogic(): GameLogicReturn {
     }
   };
 
-  // Add the delete function
   const handleDeletePress = () => {
     if (gameState !== 'recall' || playerInput.length === 0) {
       return;
@@ -82,10 +90,27 @@ export function useGameLogic(): GameLogicReturn {
       timeoutRef.current = setTimeout(() => {
         const nextLevel = level + 1;
         setLevel(nextLevel);
-        startLevel(nextLevel); // Use the calculated value, not the state
+        startLevel(nextLevel);
       }, 1500);
     } else {
-      setGameState('failure');
+      // Enhanced failure handling
+      setLastFailedSequence({ correct: sequence, player: input });
+      setLives(prevLives => prevLives - 1);
+      
+      if (lives <= 1) {
+        // Game over if this was the last life
+        setGameState('gameover');
+      } else {
+        // Enter review mode
+        setGameState('review');
+        
+        // After showing review, go back to previous level
+        timeoutRef.current = setTimeout(() => {
+          const previousLevel = Math.max(1, level - 1);
+          setLevel(previousLevel);
+          startLevel(previousLevel);
+        }, 4000); // Give enough time to review mistakes
+      }
     }
   };
 
@@ -99,6 +124,8 @@ export function useGameLogic(): GameLogicReturn {
     handleNumberPress,
     handleDeletePress,
     displayMode,
-    toggleDisplayMode
+    toggleDisplayMode,
+    lives,
+    lastFailedSequence
   };
 }
