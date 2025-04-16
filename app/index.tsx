@@ -7,15 +7,16 @@ import SequenceReview from './components/SequenceReview';
 import { createStyles } from '../src/styles/gameStyles';
 import { useTheme } from '../src/contexts/ThemeContext';
 // You'll need to install: npm install @expo/vector-icons
-import { Ionicons } from '@expo/vector-icons';
+// Removed Ionicons import as it was only used in the removed header
+// import { Ionicons } from '@expo/vector-icons';
 
 import type { GameLogicReturn } from '../src/types/game';
 
 export default function MemoryGame() {
   // Get theme context
-  const { theme, toggleTheme, colors } = useTheme();
+  const { theme, colors } = useTheme(); // Removed unused toggleTheme from here
   const styles = createStyles(colors);
-  
+
   const {
     gameState,
     level,
@@ -26,7 +27,7 @@ export default function MemoryGame() {
     handleNumberPress,
     handleDeletePress,
     displayMode,
-    toggleDisplayMode,
+    toggleDisplayMode, // Keep this logic if needed elsewhere, e.g., in settings
     lives,
     lastFailedSequence
   }: GameLogicReturn = useGameLogic();
@@ -48,35 +49,9 @@ export default function MemoryGame() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with level, score, theme toggle, and mode toggle */}
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.infoText}>Level: {level}</Text>
-          
-          {/* Theme toggle */}
-          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
-            <Ionicons
-              name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'}
-              size={20}
-              color={colors.text}
-            />
-          </TouchableOpacity>
-        </View>
-        
-        <Text style={styles.infoText}>Score: {score}</Text>
-        
-        <View style={styles.modeToggle}>
-          <Text style={styles.modeLabel}>
-            {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
-          </Text>
-          <Switch
-            value={displayMode === 'simultaneous'}
-            onValueChange={toggleDisplayMode}
-            disabled={gameState !== 'idle' && gameState !== 'failure' && gameState !== 'gameover'}
-          />
-        </View>
-      </View>
-{/* Status Banner - Removed */}
+      {/* REMOVED THE <View style={styles.header}> BLOCK THAT WAS HERE */}
+
+      {/* Status Banner - Removed */}
 
 
       {/* Sequence Display / Input Area */}
@@ -106,6 +81,7 @@ export default function MemoryGame() {
                 {gameState === 'failure' && (
                   <Text style={styles.failSequenceText}>Sequence: {sequence.join('')}</Text>
                 )}
+                {/* Removed display of level/score from here - consider adding back if needed */}
                 <View style={styles.inputRow}>
                   {sequence.map((_, index) => (
                     <View
@@ -113,7 +89,6 @@ export default function MemoryGame() {
                       style={[
                         styles.inputDot,
                         index < playerInput.length ? styles.inputDotFilled : null,
-                        // Add conditional styling for correctness on failure?
                       ]}
                     >
                       {/* Show entered number inside the dot */}
@@ -123,12 +98,48 @@ export default function MemoryGame() {
                     </View>
                   ))}
                 </View>
+                 {/* Display Level and Score below input dots */}
+                 <View style={styles.infoContainer}>
+                  <Text style={styles.infoText}>Level: {level}</Text>
+                  <Text style={styles.infoText}>Score: {score}</Text>
+                 </View>
+                 {/* Display Mode Toggle */}
+                 { (gameState === 'idle' || gameState === 'failure' || gameState === 'gameover') &&
+                  <View style={styles.modeToggle}>
+                      <Text style={[styles.modeLabel, { color: colors.text }]}>
+                        {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
+                      </Text>
+                      <Switch
+                        value={displayMode === 'simultaneous'}
+                        onValueChange={toggleDisplayMode}
+                        // Disabled logic might need adjustment based on exact state transitions
+                        disabled={gameState !== 'idle' && gameState !== 'failure' && gameState !== 'gameover'}
+                        // Consider adding theme colors to the switch track/thumb if desired
+                      />
+                 </View>
+                }
               </>
             )}
           </View>
         ) : (
            // Placeholder for idle state in game area if needed
            <View style={styles.placeholderArea}>
+             {/* Display Level and Score in placeholder */}
+             <View style={styles.infoContainer}>
+               <Text style={[styles.infoText, { marginBottom: 10 }]}>Level: {level}</Text>
+               <Text style={[styles.infoText, { marginBottom: 20 }]}>Score: {score}</Text>
+             </View>
+              {/* Display Mode Toggle */}
+              <View style={styles.modeToggle}>
+                  <Text style={[styles.modeLabel, { color: colors.text }]}>
+                    {displayMode === 'sequential' ? 'One by One' : 'All at Once'}
+                  </Text>
+                  <Switch
+                    value={displayMode === 'simultaneous'}
+                    onValueChange={toggleDisplayMode}
+                    disabled={gameState !== 'idle' && gameState !== 'failure' && gameState !== 'gameover'}
+                  />
+              </View>
              <Text style={styles.placeholderText}>Press Start</Text>
            </View>
         )}
