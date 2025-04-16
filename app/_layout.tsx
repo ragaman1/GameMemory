@@ -1,19 +1,47 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { ThemeProvider } from '../src/contexts/ThemeContext';
+// Import useTheme along with ThemeProvider
+import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
+import { Pressable, Text } from 'react-native';
 
-export default function RootLayout() {
+// Create a new component that consumes the theme context
+function ThemedStack() {
+  const router = useRouter();
+  const { colors } = useTheme(); // Use the theme context here
+
+  const navigateToSettings = () => {
+    router.push('/settings');
+  };
+
   return (
-    <ThemeProvider>
-      <Stack>
-      {/* Configure the screen for the 'index' route (index.tsx) */}
-      {/* The header title will be shown here */}
-      <Stack.Screen name="index" options={{ title: 'Number Memory Game' }} />
-      {/* If you add more screens later (e.g., app/settings.tsx), */}
-      {/* you would add more Stack.Screen components here */}
-      </Stack>
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        title: 'Number Memory Game',
+        // Apply theme colors to the header
+        headerStyle: { backgroundColor: colors.card }, // Use card or background color
+        headerTintColor: colors.text, // Use text color for title and icons
+        headerTitleStyle: { fontWeight: 'bold' }, // Keep or adjust as needed
+        headerRight: () => (
+          <Pressable onPress={navigateToSettings} style={{ paddingRight: 15 }}>
+            {/* Apply theme color to the settings icon */}
+            <Text style={{ color: colors.text, fontSize: 24 }}>⚙️</Text>
+          </Pressable>
+        ),
+      }}
+    >
+      {/* Define screens */}
+      <Stack.Screen name="index" />
+      {/* Explicitly define settings screen to potentially override options if needed */}
+      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+    </Stack>
   );
 }
 
-// Optional: Add basic error boundary or global context providers here if needed
+// RootLayout now just sets up the provider and renders ThemedStack
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <ThemedStack />
+    </ThemeProvider>
+  );
+}
