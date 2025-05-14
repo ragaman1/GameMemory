@@ -13,7 +13,7 @@ export function useGameLogic(): GameLogicReturn {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('sequential');
   
   // New state for lives system
-  const [lives, setLives] = useState(4);
+  const [lives, setLives] = useState(3);
   const [lastFailedSequence, setLastFailedSequence] = useState<{
     correct: number[],
     player: number[]
@@ -57,7 +57,7 @@ export function useGameLogic(): GameLogicReturn {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setLevel(1);
     setScore(0);
-    setLives(4);
+    setLives(3);
     setLastFailedSequence(null);
     startLevel(1);
   };

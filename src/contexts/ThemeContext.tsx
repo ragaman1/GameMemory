@@ -1,4 +1,5 @@
 // src/contexts/ThemeContext.tsx
+ // src/contexts/ThemeContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
@@ -7,8 +8,8 @@ export type ThemeMode = 'light' | 'dark';
 
 // Define color schemes for light and dark themes
 export const LightTheme = {
-  background: 'rgb(240, 244, 247)',
-  card: 'rgba(255, 255, 255, 0.94)',
+  background: 'rgb(140, 247, 39)',     // light yellow background
+  card: 'rgba(237, 255, 44, 0.94)',    // pale yellow card
   correct: 'rgb(46, 204, 113)',
   text: 'rgb(51, 51, 51)',
   textSecondary: 'rgb(136, 136, 136)',
